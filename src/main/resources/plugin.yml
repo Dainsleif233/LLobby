@@ -1,11 +1,15 @@
 name: LLobby
-version: '1.0.0'
+version: '${version}'
 main: top.syshub.lLobby.LLobby
 api-version: '1.20'
 authors:
   - Dainsleif
 description: A lite lobby plugin.
 website: mc.syshub.top
+depend:
+  - ProtocolLib
+softdepend:
+  - PlaceholderAPI
 commands:
   llobby: {}
   llobbyadmin:

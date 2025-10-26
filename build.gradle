@@ -3,7 +3,7 @@ plugins {
 }
 
 group = 'top.syshub'
-version = '1.0.0'
+version = '1.1.0'
 
 repositories {
     mavenCentral()
@@ -27,10 +27,16 @@ repositories {
         name = "sonatype"
         url = "https://oss.sonatype.org/content/groups/public/"
     }
+    maven {
+        url = 'https://repo.extendedclip.com/releases/'
+    }
 }
 
 dependencies {
-    compileOnly("org.spigotmc:spigot-api:1.21.1-R0.1-SNAPSHOT")
+    compileOnly 'org.spigotmc:spigot-api:1.21.1-R0.1-SNAPSHOT'
+    compileOnly 'net.dmulloy2:ProtocolLib:5.4.0'
+    compileOnly 'me.clip:placeholderapi:2.11.6'
+    implementation 'com.google.code.gson:gson:2.10.1'
 }
 
 def targetJavaVersion = 21

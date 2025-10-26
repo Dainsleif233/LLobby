@@ -1,20 +1,28 @@
 package top.syshub.lLobby;
 
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.ProtocolManager;
+import com.google.common.io.ByteArrayDataInput;
+import com.google.common.io.ByteStreams;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.messaging.PluginMessageListener;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public final class LLobby extends JavaPlugin {
+public final class LLobby extends JavaPlugin implements PluginMessageListener {
 
     public static LLobby plugin;
     public static FileConfiguration config;
     public static Map<String, List<String>> worlds;
+    public static ProtocolManager protocolManager;
 
     private static Map<String, List<String>> buildWorldLocationsMap() {
         Map<String, List<String>> result = new HashMap<>();
@@ -47,6 +55,7 @@ public final class LLobby extends JavaPlugin {
                 StandardCopyOption.REPLACE_EXISTING
         );
         saveDefaultConfig();
+        reloadConfig();
         config = getConfig();
         worlds = buildWorldLocationsMap();
     }
@@ -55,16 +64,68 @@ public final class LLobby extends JavaPlugin {
     public void onEnable() {
 
         plugin  = this;
+        protocolManager = ProtocolLibrary.getProtocolManager();
         try {
             load();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        if(Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null)
+            new PAPI().register();
 
         Objects.requireNonNull(Bukkit.getPluginCommand("llobby")).setExecutor(new Command.LLobbyCommand());
         Objects.requireNonNull(Bukkit.getPluginCommand("llobby")).setTabCompleter(new Command.LLobbyCommand());
         Objects.requireNonNull(Bukkit.getPluginCommand("llobbyadmin")).setExecutor(new Command.LLobbyAdminCommand());
         Objects.requireNonNull(Bukkit.getPluginCommand("llobbyadmin")).setTabCompleter(new Command.LLobbyAdminCommand());
+
+        getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
+        getServer().getMessenger().registerIncomingPluginChannel(this, "BungeeCord", this);
+        getServer().getPluginManager().registerEvents(new Tab(), this);
+
+        Bukkit.getScheduler().runTaskTimer(
+                this,
+                Tab::sendServerListMsg,
+                0L,
+                20L
+        );
+    }
+
+    @Override
+    public void onPluginMessageReceived(String channel, @Nonnull Player player, @Nonnull byte[] message) {
+        if (!channel.equals("BungeeCord")) return;
+
+        ByteArrayDataInput in = ByteStreams.newDataInput(message);
+        String subChannel = in.readUTF();
+
+        if (subChannel.equals("GetServers")) {
+            String servers = in.readUTF();
+
+            String[] serverList = servers.isEmpty() ? new String[0] : servers.split(", ");
+            for (String s : serverList) Tab.sendPlayerListMsg(s);
+            Tab.sendServerMsg();
+        }
+
+        if (subChannel.equals("PlayerList")) {
+            String server = in.readUTF();
+            String players = in.readUTF();
+
+            List<String> playerList = List.of(players.isEmpty() ? new String[0] : players.split(", "));
+            for(String s : playerList) Tab.sendUUIDMsg(s);
+            Tab.serversList.put(server, new HashSet<>(playerList));
+        }
+
+        if (subChannel.equals("UUIDOther")) {
+            String name = in.readUTF();
+            String uuid = in.readUTF();
+
+            if(!Tab.uuidMap.containsKey(name)) Tab.uuidMap.put(name, UUID.randomUUID());
+            if(!Tab.realUUID.getOrDefault(name, "").equals(uuid)) Tab.realUUID.put(name, uuid);
+            Tab.refreshTab();
+            Tab.syncFakePlayer();
+        }
+
+        if (subChannel.equals("GetServer"))
+            Tab.currentServer = in.readUTF();
     }
 
     @Override

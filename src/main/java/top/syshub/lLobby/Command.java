@@ -93,6 +93,10 @@ public class Command {
                     executeRemove((Player) sender, args[1], args[2]);
                     return true;
                 }
+                if(args[0].equals("help")) {
+                    sender.sendMessage(Tab.fakePlayers.toString());
+                    return true;
+                }
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

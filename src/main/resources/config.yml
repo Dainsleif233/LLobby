@@ -9,3 +9,7 @@ worlds:
     locations:
       - name: example2_1
         position: [0, 64, 0 , 0, 0]
+servers:
+  - server: lobby
+    prefix: "§e[大厅] "
+yggdrasil-api: https://littleskin.cn/api/yggdrasil
