@@ -70,7 +70,7 @@ public final class LLobby extends JavaPlugin implements PluginMessageListener {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        if(Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null)
+        if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null)
             new PAPI().register();
 
         Objects.requireNonNull(Bukkit.getPluginCommand("llobby")).setExecutor(new Command.LLobbyCommand());
@@ -116,10 +116,14 @@ public final class LLobby extends JavaPlugin implements PluginMessageListener {
 
         if (subChannel.equals("UUIDOther")) {
             String name = in.readUTF();
-            String uuid = in.readUTF();
+            String uuidStr = in.readUTF();
 
-            if(!Tab.uuidMap.containsKey(name)) Tab.uuidMap.put(name, UUID.randomUUID());
-            if(!Tab.realUUID.getOrDefault(name, "").equals(uuid)) Tab.realUUID.put(name, uuid);
+            String formattedUUID = uuidStr.substring(0, 8) + "-" +
+                    uuidStr.substring(8, 12) + "-" +
+                    uuidStr.substring(12, 16) + "-" +
+                    uuidStr.substring(16, 20) + "-" +
+                    uuidStr.substring(20, 32);
+            if (!Tab.uuidMap.containsKey(name)) Tab.uuidMap.put(name, UUID.fromString(formattedUUID));
             Tab.refreshTab();
             Tab.syncFakePlayer();
         }

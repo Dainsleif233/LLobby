@@ -37,8 +37,6 @@ public class Tab implements Listener {
 
     public static final Map<String, UUID> uuidMap = new ConcurrentHashMap<>();
 
-    public static final Map<String, String> realUUID = new ConcurrentHashMap<>();
-
     public static final Map<String, String> prefixMap = new ConcurrentHashMap<>();
 
     public static String currentServer;
@@ -50,7 +48,7 @@ public class Tab implements Listener {
         out.writeUTF("GetServers");
 
         Collection<? extends Player> players = Bukkit.getOnlinePlayers();
-        if(players.isEmpty()) {
+        if (players.isEmpty()) {
             fakePlayers.clear();
             return;
         }
@@ -64,7 +62,7 @@ public class Tab implements Listener {
         out.writeUTF(serverName);
 
         Collection<? extends Player> players = Bukkit.getOnlinePlayers();
-        if(players.isEmpty()) return;
+        if (players.isEmpty()) return;
         players.iterator().next()
                 .sendPluginMessage(LLobby.plugin, "BungeeCord", out.toByteArray());
     }
@@ -74,7 +72,7 @@ public class Tab implements Listener {
         out.writeUTF("GetServer");
 
         Collection<? extends Player> players = Bukkit.getOnlinePlayers();
-        if(players.isEmpty()) return;
+        if (players.isEmpty()) return;
         players.iterator().next()
                 .sendPluginMessage(LLobby.plugin, "BungeeCord", out.toByteArray());
     }
@@ -85,7 +83,7 @@ public class Tab implements Listener {
         out.writeUTF(player);
 
         Collection<? extends Player> players = Bukkit.getOnlinePlayers();
-        if(players.isEmpty()) return;
+        if (players.isEmpty()) return;
         players.iterator().next()
                 .sendPluginMessage(LLobby.plugin, "BungeeCord", out.toByteArray());
     }
@@ -95,7 +93,7 @@ public class Tab implements Listener {
         String skinApi = yggdrasilApi.isEmpty() ?
                 "https://sessionserver.mojang.com/session/minecraft/profile/%s?unsigned=false" :
                 yggdrasilApi + "/sessionserver/session/minecraft/profile/%s?unsigned=false";
-        String profileApi = String.format(skinApi, realUUID.get(player));
+        String profileApi = String.format(skinApi, uuidMap.get(player).toString().replace("-", ""));
 
         Gson gson = new Gson();
         HttpRequest request = java.net.http.HttpRequest.newBuilder()
@@ -104,13 +102,13 @@ public class Tab implements Listener {
 
         try(HttpClient client = HttpClient.newHttpClient()) {
             java.net.http.HttpResponse<String> response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
-            if(response.statusCode() != 200) return null;
+            if (response.statusCode() != 200) return null;
             String result = response.body();
             JsonObject profile = gson.fromJson(result, JsonObject.class);
 
 
-            for(JsonElement property : profile.getAsJsonArray("properties"))
-                if(property.getAsJsonObject().get("name").getAsString().equals("textures"))
+            for (JsonElement property : profile.getAsJsonArray("properties"))
+                if (property.getAsJsonObject().get("name").getAsString().equals("textures"))
                     return new PlayerSkin(
                             property.getAsJsonObject().get("value").getAsString(),
                             property.getAsJsonObject().get("signature").getAsString()
@@ -126,13 +124,15 @@ public class Tab implements Listener {
             String displayName = prefixMap.get(player) + player;
             WrappedGameProfile gameProfile = new WrappedGameProfile(uuidMap.get(player), player);
             PlayerSkin skin = getPlayerSkin(player);
-            if (skin == null) return;
-            WrappedSignedProperty skinProperty = new WrappedSignedProperty(
-                    "textures",
-                    skin.texture,
-                    skin.signature
-            );
-            gameProfile.getProperties().put("textures", skinProperty);
+            if (skin != null)
+                gameProfile.getProperties().put(
+                        "textures",
+                        new WrappedSignedProperty(
+                                "textures",
+                                skin.texture,
+                                skin.signature
+                        )
+                );
             PlayerInfoData playerInfoData = new PlayerInfoData(
                     gameProfile,
                     0,
@@ -178,7 +178,7 @@ public class Tab implements Listener {
     private static void removePlayer(String player) {
         try {
             UUID uuid = uuidMap.get(player);
-            if(uuid == null) return;
+            if (uuid == null) return;
             PacketContainer packet = LLobby.protocolManager.createPacket(PacketType.Play.Server.PLAYER_INFO_REMOVE);
             packet.getUUIDLists().write(0, Collections.singletonList(uuid));
 
@@ -197,13 +197,15 @@ public class Tab implements Listener {
 
                 WrappedGameProfile gameProfile = new WrappedGameProfile(uuid, name);
                 PlayerSkin skin = getPlayerSkin(name);
-                if (skin == null) return;
-                WrappedSignedProperty skinProperty = new WrappedSignedProperty(
-                        "textures",
-                        skin.texture,
-                        skin.signature
-                );
-                gameProfile.getProperties().put("textures", skinProperty);
+                if (skin != null)
+                    gameProfile.getProperties().put(
+                            "textures",
+                            new WrappedSignedProperty(
+                                    "textures",
+                                    skin.texture,
+                                    skin.signature
+                            )
+                    );
                 PlayerInfoData infoData = new PlayerInfoData(
                         gameProfile,
                         0,
@@ -231,19 +233,19 @@ public class Tab implements Listener {
         listCopy.remove(currentServer);
         listCopy.values().forEach(l -> l.forEach(player -> {
             String prefix = prefixMap.get(player);
-            if(prefix == null) return;
+            if (prefix == null) return;
             newFakePlayer.put(player, prefix + player);
         }));
 
-        for(Map.Entry<String, String> e : newFakePlayer.entrySet()) {
+        for (Map.Entry<String, String> e : newFakePlayer.entrySet()) {
             String player = e.getKey();
             String displayName = e.getValue();
             UUID uuid = uuidMap.get(player);
 
-            if(uuid !=null && !fakePlayers.containsKey(player)) {
+            if (uuid !=null && !fakePlayers.containsKey(player)) {
                 addPlayer(player);
                 fakePlayers.put(player, displayName);
-            } else if(uuid != null && !fakePlayers.get(player).equals(displayName)) {
+            } else if (uuid != null && !fakePlayers.get(player).equals(displayName)) {
                 updatePlayer(player);
                 fakePlayers.put(player, displayName);
             }
@@ -253,8 +255,8 @@ public class Tab implements Listener {
         while(it.hasNext()) {
             Map.Entry<String, String> e = it.next();
             String player = e.getKey();
-            if(!newFakePlayer.containsKey(player)) {
-                removePlayer(player);
+            if (!newFakePlayer.containsKey(player)) {
+                if (!serversList.get(currentServer).contains(player)) removePlayer(player);
                 it.remove();
             }
         }
@@ -263,12 +265,12 @@ public class Tab implements Listener {
     public static void refreshTab() {
         List<Map<?, ?>> servers = LLobby.config.getMapList("servers");
 
-        for(int i = 0; i < servers.size(); i++) {
+        for (int i = 0; i < servers.size(); i++) {
             Map<?, ?> s = servers.get(i);
 
-            if(s.get("server").equals(currentServer)) {
+            if (s.get("server").equals(currentServer)) {
                 Collection<? extends Player> players = Bukkit.getOnlinePlayers();
-                if(players.isEmpty()) continue;
+                if (players.isEmpty()) continue;
                 String prefix = s.get("prefix").toString();
 //                int I = i;
                 players.forEach(p -> {
@@ -278,12 +280,12 @@ public class Tab implements Listener {
                 });
             } else {
                 Set<String> list = serversList.get(s.get("server").toString());
-                if(list == null || list.isEmpty()) continue;
+                if (list == null || list.isEmpty()) continue;
                 String prefix = s.get("prefix").toString();
 //                int I = i;
                 list.forEach(l -> {
                     prefixMap.put(l, prefix);
-//                    if(fakePlayers.containsKey(l))
+//                    if (fakePlayers.containsKey(l))
 //                        setPriority(Objects.requireNonNull(LLobby.plugin.getServer().getPlayer(uuidMap.get(l))), I);
                 });
             }
@@ -292,7 +294,7 @@ public class Tab implements Listener {
 
     @EventHandler
     public void onJoin(PlayerJoinEvent e) {
-        if(LLobby.plugin.getServer().getOnlinePlayers().size() == 1) return;
+        if (LLobby.plugin.getServer().getOnlinePlayers().size() == 1) return;
         Player player = e.getPlayer();
         sendFakePlayersTo(player);
     }
