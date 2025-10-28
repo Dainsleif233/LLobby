@@ -1,12 +1,15 @@
-package top.syshub.lLobby;
+package top.syshub.lLobby.Hook;
 
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
+import top.syshub.lLobby.Manager.TabManager;
 
+import static java.util.Objects.requireNonNull;
 import static top.syshub.lLobby.LLobby.plugin;
+import static top.syshub.lLobby.Manager.LocationManager.nicknames;
 
-public class PAPI extends PlaceholderExpansion {
+public class PlaceholderApi extends PlaceholderExpansion {
 
     @Override
     @NotNull
@@ -17,7 +20,7 @@ public class PAPI extends PlaceholderExpansion {
     @Override
     @NotNull
     public String getIdentifier() {
-        return "LLobby";
+        return plugin.getDataFolder().getName();
     }
 
     @Override
@@ -34,7 +37,11 @@ public class PAPI extends PlaceholderExpansion {
     @Override
     public String onRequest(OfflinePlayer player, @NotNull String params) {
         if (params.equalsIgnoreCase("prefix"))
-            return Tab.prefixMap.getOrDefault(player.getName(), "");
+            return TabManager.prefixMap.getOrDefault(player.getName(), "");
+        if (params.equalsIgnoreCase("world")) {
+            String world = requireNonNull(requireNonNull(player.getLocation()).getWorld()).getName();
+            return nicknames.getOrDefault(world, world);
+        }
         return null;
     }
 }
