@@ -1,7 +1,7 @@
 name: LLobby
 version: '${version}'
 main: top.syshub.lLobby.LLobby
-api-version: '1.20'
+api-version: '1.21'
 authors:
   - Dainsleif
 description: A lite lobby plugin.

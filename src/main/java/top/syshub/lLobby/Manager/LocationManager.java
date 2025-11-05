@@ -15,6 +15,8 @@ public class LocationManager {
     public static Map<String, String> nicknames = new ConcurrentHashMap<>();
 
     public static void buildWorldLocationsMap() {
+        LocationManager.worlds.clear();
+        LocationManager.nicknames.clear();
         List<Map<?, ?>> worlds = config.getMapList("worlds");
 
         worlds.forEach(world -> {

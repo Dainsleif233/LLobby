@@ -45,6 +45,7 @@ public class BungeeMessage implements PluginMessageListener {
             Set<String> playerSet = Set.of(players.isEmpty() ? new String[0] : players.split(", "));
             for(String s : playerSet) sendUUIDMsg(s);
             playerList.put(server, new HashSet<>(playerSet));
+            TabManager.refreshTab();
         }
 
         if (subChannel.equals("UUIDOther")) {
@@ -57,7 +58,6 @@ public class BungeeMessage implements PluginMessageListener {
                     uuidStr.substring(16, 20) + "-" +
                     uuidStr.substring(20, 32);
             if (!uuidMap.containsKey(name)) uuidMap.put(name, UUID.fromString(formattedUUID));
-            TabManager.refreshTab();
         }
 
         if (subChannel.equals("GetServer"))

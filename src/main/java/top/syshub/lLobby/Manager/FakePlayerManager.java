@@ -4,6 +4,7 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.reflect.FieldAccessException;
 import com.comphenix.protocol.wrappers.*;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.*;
@@ -21,31 +22,32 @@ public class FakePlayerManager {
         try {
             String displayName = prefixMap.get(player) + player;
             WrappedGameProfile gameProfile = new WrappedGameProfile(uuidMap.get(player), player);
-            PlayerSkinManager.PlayerSkin skin = PlayerSkinManager.getPlayerSkin(player);
-            if (skin != null)
-                gameProfile.getProperties().put(
-                        "textures",
-                        new WrappedSignedProperty(
-                                "textures",
-                                skin.texture(),
-                                skin.signature()
-                        )
+            PlayerSkinManager.getPlayerSkin(player).thenAccept(skin -> {
+                if (skin != null)
+                    gameProfile.getProperties().put(
+                            "textures",
+                            new WrappedSignedProperty(
+                                    "textures",
+                                    skin.texture(),
+                                    skin.signature()
+                            )
+                    );
+                PlayerInfoData playerInfoData = new PlayerInfoData(
+                        gameProfile,
+                        0,
+                        EnumWrappers.NativeGameMode.SURVIVAL,
+                        WrappedChatComponent.fromText(displayName)
                 );
-            PlayerInfoData playerInfoData = new PlayerInfoData(
-                    gameProfile,
-                    0,
-                    EnumWrappers.NativeGameMode.SURVIVAL,
-                    WrappedChatComponent.fromText(displayName)
-            );
-            PacketContainer packet = protocolManager.createPacket(PacketType.Play.Server.PLAYER_INFO);
-            packet.getPlayerInfoActions().write(0, EnumSet.of(
-                    EnumWrappers.PlayerInfoAction.ADD_PLAYER,
-                    EnumWrappers.PlayerInfoAction.UPDATE_DISPLAY_NAME,
-                    EnumWrappers.PlayerInfoAction.UPDATE_LISTED
-            ));
-            packet.getPlayerInfoDataLists().write(1, Collections.singletonList(playerInfoData));
+                PacketContainer packet = protocolManager.createPacket(PacketType.Play.Server.PLAYER_INFO);
+                packet.getPlayerInfoActions().write(0, EnumSet.of(
+                        EnumWrappers.PlayerInfoAction.ADD_PLAYER,
+                        EnumWrappers.PlayerInfoAction.UPDATE_DISPLAY_NAME,
+                        EnumWrappers.PlayerInfoAction.UPDATE_LISTED
+                ));
+                packet.getPlayerInfoDataLists().write(1, Collections.singletonList(playerInfoData));
 
-            protocolManager.broadcastServerPacket(packet);
+                protocolManager.broadcastServerPacket(packet);
+            });
         } catch(FieldAccessException e) {
             throw new RuntimeException(e);
         }
@@ -74,9 +76,9 @@ public class FakePlayerManager {
     }
 
     private static void removePlayer(String player) {
+        UUID uuid = uuidMap.get(player);
+        if (uuid == null) return;
         try {
-            UUID uuid = uuidMap.get(player);
-            if (uuid == null) return;
             PacketContainer packet = protocolManager.createPacket(PacketType.Play.Server.PLAYER_INFO_REMOVE);
             packet.getUUIDLists().write(0, Collections.singletonList(uuid));
 
@@ -87,41 +89,42 @@ public class FakePlayerManager {
     }
 
     public static void sendFakePlayersTo(Player target) {
-        try {
-            for (String name : fakePlayers.keySet()) {
-                UUID uuid = uuidMap.get(name);
-                if (uuid == null) continue;
-                String displayName = fakePlayers.get(name);
+        for (String name : fakePlayers.keySet()) {
+            UUID uuid = uuidMap.get(name);
+            if (uuid == null) continue;
+            String displayName = fakePlayers.get(name);
 
+            try {
                 WrappedGameProfile gameProfile = new WrappedGameProfile(uuid, name);
-                PlayerSkinManager.PlayerSkin skin = PlayerSkinManager.getPlayerSkin(name);
-                if (skin != null)
-                    gameProfile.getProperties().put(
-                            "textures",
-                            new WrappedSignedProperty(
-                                    "textures",
-                                    skin.texture(),
-                                    skin.signature()
-                            )
+                PlayerSkinManager.getPlayerSkin(name).thenAccept(skin -> {
+                    if (skin != null)
+                        gameProfile.getProperties().put(
+                                "textures",
+                                new WrappedSignedProperty(
+                                        "textures",
+                                        skin.texture(),
+                                        skin.signature()
+                                )
+                        );
+                    PlayerInfoData infoData = new PlayerInfoData(
+                            gameProfile,
+                            0,
+                            EnumWrappers.NativeGameMode.SURVIVAL,
+                            WrappedChatComponent.fromText(displayName)
                     );
-                PlayerInfoData infoData = new PlayerInfoData(
-                        gameProfile,
-                        0,
-                        EnumWrappers.NativeGameMode.SURVIVAL,
-                        WrappedChatComponent.fromText(displayName)
-                );
-                PacketContainer packet = protocolManager.createPacket(PacketType.Play.Server.PLAYER_INFO);
-                packet.getPlayerInfoActions().write(0, EnumSet.of(
-                        EnumWrappers.PlayerInfoAction.ADD_PLAYER,
-                        EnumWrappers.PlayerInfoAction.UPDATE_DISPLAY_NAME,
-                        EnumWrappers.PlayerInfoAction.UPDATE_LISTED
-                ));
-                packet.getPlayerInfoDataLists().write(1, Collections.singletonList(infoData));
+                    PacketContainer packet = protocolManager.createPacket(PacketType.Play.Server.PLAYER_INFO);
+                    packet.getPlayerInfoActions().write(0, EnumSet.of(
+                            EnumWrappers.PlayerInfoAction.ADD_PLAYER,
+                            EnumWrappers.PlayerInfoAction.UPDATE_DISPLAY_NAME,
+                            EnumWrappers.PlayerInfoAction.UPDATE_LISTED
+                    ));
+                    packet.getPlayerInfoDataLists().write(1, Collections.singletonList(infoData));
 
-                protocolManager.sendServerPacket(target, packet);
+                    protocolManager.sendServerPacket(target, packet);
+                });
+            } catch (FieldAccessException e) {
+                throw new RuntimeException(e);
             }
-        } catch(FieldAccessException e) {
-            throw new RuntimeException(e);
         }
     }
 
@@ -154,7 +157,8 @@ public class FakePlayerManager {
             Map.Entry<String, String> e = it.next();
             String player = e.getKey();
             if (!newFakePlayer.containsKey(player)) {
-                if (!playerList.get(server).contains(player)) removePlayer(player);
+                if (!Bukkit.getOnlinePlayers().stream().map(Player::getName).toList().contains(player))
+                    removePlayer(player);
                 it.remove();
             }
         }
