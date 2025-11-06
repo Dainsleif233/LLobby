@@ -10,7 +10,7 @@ import static top.syshub.lLobby.LLobby.config;
 
 public class LocationManager {
 
-    public static Map<String, List<String>> worlds = new ConcurrentHashMap<>();
+    public static Map<String, Map<String, String>> worlds = new ConcurrentHashMap<>();
 
     public static Map<String, String> nicknames = new ConcurrentHashMap<>();
 
@@ -21,18 +21,23 @@ public class LocationManager {
 
         worlds.forEach(world -> {
             if (world instanceof Map<?, ?> worldObj) {
-                List<String> locationNames = ((List<?>) worldObj.get("locations"))
-                        .stream()
-                        .filter(l -> l instanceof Map<?, ?>)
-                        .map(l -> ((Map<?, ?>) l).get("name"))
-                        .filter(Objects::nonNull)
-                        .map(Object::toString)
-                        .collect(Collectors.toList());
+                Map<String, String> locations = ((List<?>) worldObj.get("locations")).stream()
+                        .filter(Objects::nonNull).filter(p -> p instanceof Map<?, ?>)
+                        .filter(l -> ((Map<?, ?>) l).containsKey("name"))
+                        .collect(Collectors.toMap(
+                                l -> ((Map<?, ?>) l).get("name").toString(),
+                                l -> {
+                                    Map<?, ?> loc = (Map<?, ?>) l;
+                                    Object nick = loc.get("nick");
+                                    return nick != null ? nick.toString() : loc.get("name").toString();
+                                },
+                                (existing, replacement) -> existing
+                        ));
 
                 String worldName = (String) worldObj.get("name");
                 String nickname = (String) worldObj.get("nick");
                 if (worldName != null)
-                    LocationManager.worlds.put(worldName, locationNames);
+                    LocationManager.worlds.put(worldName, locations);
                 if (nickname != null)
                     LocationManager.nicknames.put(worldName, nickname);
             }

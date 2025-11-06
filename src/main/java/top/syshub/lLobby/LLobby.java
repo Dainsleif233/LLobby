@@ -6,13 +6,12 @@ import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 import top.syshub.lLobby.Command.*;
-import top.syshub.lLobby.Hook.BungeeMessage;
-import top.syshub.lLobby.Hook.PlaceholderApi;
+import top.syshub.lLobby.Hook.*;
 import top.syshub.lLobby.Manager.*;
 
 import java.io.IOException;
-import java.util.*;
 
+import static java.util.Objects.requireNonNull;
 import static org.bukkit.Bukkit.getPluginCommand;
 
 public final class LLobby extends JavaPlugin {
@@ -41,14 +40,15 @@ public final class LLobby extends JavaPlugin {
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null)
             new PlaceholderApi().register();
 
-        Objects.requireNonNull(getPluginCommand("llobby")).setExecutor(new LLobbyCommand());
-        Objects.requireNonNull(getPluginCommand("llobby")).setTabCompleter(new LLobbyCommand());
-        Objects.requireNonNull(getPluginCommand("llobbyadmin")).setExecutor(new LLobbyAdminCommand());
-        Objects.requireNonNull(getPluginCommand("llobbyadmin")).setTabCompleter(new LLobbyAdminCommand());
+        requireNonNull(getPluginCommand("llobby")).setExecutor(new LLobbyCommand());
+        requireNonNull(getPluginCommand("llobby")).setTabCompleter(new LLobbyCommand());
+        requireNonNull(getPluginCommand("llobbyadmin")).setExecutor(new LLobbyAdminCommand());
+        requireNonNull(getPluginCommand("llobbyadmin")).setTabCompleter(new LLobbyAdminCommand());
 
         getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
         getServer().getMessenger().registerIncomingPluginChannel(this, "BungeeCord", new BungeeMessage());
         getServer().getPluginManager().registerEvents(new TabManager(), this);
+        getServer().getPluginManager().registerEvents(new LLobbyCommand(), this);
 
         Bukkit.getScheduler().runTaskTimer(
                 this,
@@ -57,7 +57,4 @@ public final class LLobby extends JavaPlugin {
                 20L
         );
     }
-
-    @Override
-    public void onDisable() {}
 }

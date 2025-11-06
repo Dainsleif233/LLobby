@@ -3,8 +3,10 @@ worlds:
     nick: "主世界"
     locations:
       - name: example1_1
+        nick: "主城"
         position: [0, 64, 0 , 0, 0]
       - name: example1_2
+        nick: "末地门"
         position: [100, 64, 100 , 0, 0]
   - name: world_nether
     nick: "下界"
