@@ -9,10 +9,12 @@ import org.bukkit.entity.Player;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import static top.syshub.lLobby.Hook.BungeeMessage.*;
 import static top.syshub.lLobby.LLobby.protocolManager;
 import static top.syshub.lLobby.Manager.TabManager.prefixMap;
+import static top.syshub.lLobby.Manager.TabManager.servers;
 
 public class FakePlayerManager {
 
@@ -131,6 +133,12 @@ public class FakePlayerManager {
     public static void syncFakePlayer() {
         Map<String, String> newFakePlayer = new HashMap<>();
         Map<String, Set<String>> listCopy = new HashMap<>(playerList);
+        listCopy.keySet().retainAll(
+                servers.stream()
+                        .map(map -> map.get("server").toString())
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toSet())
+        );
         listCopy.remove(server);
         listCopy.values().forEach(l -> l.forEach(player -> {
             String prefix = prefixMap.get(player);

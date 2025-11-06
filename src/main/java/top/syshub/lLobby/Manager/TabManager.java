@@ -17,9 +17,14 @@ public class TabManager implements Listener {
 
     public static final Map<String, String> prefixMap = new ConcurrentHashMap<>();
 
-    public static void refreshTab() {
-        List<Map<?, ?>> servers = config.getMapList("servers");
+    public static List<Map<?, ?>> servers;
 
+    public static void initTab() {
+        prefixMap.clear();
+        servers = config.getMapList("servers");
+    }
+
+    public static void refreshTab() {
         for (Map<?, ?> s : servers) {
             if (s.get("server").equals(server)) {
                 Collection<? extends Player> players = Bukkit.getOnlinePlayers();

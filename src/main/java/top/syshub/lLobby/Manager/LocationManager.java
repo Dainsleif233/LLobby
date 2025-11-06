@@ -15,11 +15,11 @@ public class LocationManager {
     public static Map<String, String> nicknames = new ConcurrentHashMap<>();
 
     public static void buildWorldLocationsMap() {
-        LocationManager.worlds.clear();
-        LocationManager.nicknames.clear();
-        List<Map<?, ?>> worlds = config.getMapList("worlds");
+        worlds.clear();
+        nicknames.clear();
+        List<Map<?, ?>> worldList = config.getMapList("worlds");
 
-        worlds.forEach(world -> {
+        worldList.forEach(world -> {
             if (world instanceof Map<?, ?> worldObj) {
                 Map<String, String> locations = ((List<?>) worldObj.get("locations")).stream()
                         .filter(Objects::nonNull).filter(p -> p instanceof Map<?, ?>)
@@ -37,9 +37,9 @@ public class LocationManager {
                 String worldName = (String) worldObj.get("name");
                 String nickname = (String) worldObj.get("nick");
                 if (worldName != null)
-                    LocationManager.worlds.put(worldName, locations);
+                    worlds.put(worldName, locations);
                 if (nickname != null)
-                    LocationManager.nicknames.put(worldName, nickname);
+                    nicknames.put(worldName, nickname);
             }
         });
     }

@@ -25,6 +25,7 @@ public final class LLobby extends JavaPlugin {
         reloadConfig();
         config = getConfig();
         LocationManager.buildWorldLocationsMap();
+        TabManager.initTab();
     }
 
     @Override
