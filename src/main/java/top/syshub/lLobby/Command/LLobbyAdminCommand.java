@@ -14,6 +14,7 @@ import java.util.*;
 import static java.util.Objects.requireNonNull;
 import static top.syshub.lLobby.LLobby.config;
 import static top.syshub.lLobby.LLobby.plugin;
+import static top.syshub.lLobby.Manager.LocationManager.nicknames;
 import static top.syshub.lLobby.Manager.LocationManager.worlds;
 
 public class LLobbyAdminCommand implements TabExecutor {
@@ -69,6 +70,7 @@ public class LLobbyAdminCommand implements TabExecutor {
         if (oldWorlds.stream().filter(p -> world.equals(p.get("name"))).findFirst().isEmpty()) {
             oldWorlds.add(Map.of(
                     "name", world,
+                    "nick", nicknames.getOrDefault(world, world),
                     "locations", List.of(Map.of(
                             "name", locationName,
                             "nick", nickName,
@@ -78,7 +80,7 @@ public class LLobbyAdminCommand implements TabExecutor {
             config.set("worlds", oldWorlds);
             plugin.saveConfig();
             plugin.loadConfig();
-        }else {
+        } else {
             List<?> oldLocations = oldWorlds.stream()
                     .filter(p -> p.get("name").equals(world)).findFirst()
                     .map(p -> ((List<?>) p.get("locations"))).orElse(new ArrayList<>());
@@ -116,6 +118,7 @@ public class LLobbyAdminCommand implements TabExecutor {
                 .map(p -> {
                     HashMap<String, Object> newWorld = new HashMap<>();
                     newWorld.put("name", world);
+                    newWorld.put("nick", nicknames.getOrDefault(world, world));
                     newWorld.put("locations", newLocations);
                     return newWorld;
                 }).orElse(null)
