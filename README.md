@@ -68,7 +68,7 @@ yggdrasil-api: https://littleskin.cn/api/yggdrasil # 获取玩家头像的api，
 ```
 `nick` 和 `prefix` 可用 `§` 指示颜色  
 设置 `worlds: []` 以关闭传送功能  
-不在 `servers` 中的服务器将不会显示玩家（有bug）
+不在 `servers` 中的服务器将不会显示玩家
 
 ## PlaceholderAPI变量
 
