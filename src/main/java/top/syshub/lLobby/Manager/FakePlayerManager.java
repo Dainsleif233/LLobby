@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 import static top.syshub.lLobby.Hook.BungeeMessage.*;
 import static top.syshub.lLobby.LLobby.protocolManager;
+import static top.syshub.lLobby.Manager.PlayerSkinManager.NULL_SKIN;
 import static top.syshub.lLobby.Manager.TabManager.prefixMap;
 import static top.syshub.lLobby.Manager.TabManager.servers;
 
@@ -25,7 +26,7 @@ public class FakePlayerManager {
             String displayName = prefixMap.get(player) + player;
             WrappedGameProfile gameProfile = new WrappedGameProfile(uuidMap.get(player), player);
             PlayerSkinManager.getPlayerSkin(player).thenAccept(skin -> {
-                if (skin != null)
+                if (!skin.equals(NULL_SKIN))
                     gameProfile.getProperties().put(
                             "textures",
                             new WrappedSignedProperty(
@@ -99,7 +100,7 @@ public class FakePlayerManager {
             try {
                 WrappedGameProfile gameProfile = new WrappedGameProfile(uuid, name);
                 PlayerSkinManager.getPlayerSkin(name).thenAccept(skin -> {
-                    if (skin != null)
+                    if (!skin.equals(NULL_SKIN))
                         gameProfile.getProperties().put(
                                 "textures",
                                 new WrappedSignedProperty(

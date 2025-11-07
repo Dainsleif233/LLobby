@@ -12,6 +12,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import static top.syshub.lLobby.Hook.BungeeMessage.*;
 import static top.syshub.lLobby.LLobby.config;
 import static top.syshub.lLobby.LLobby.plugin;
+import static top.syshub.lLobby.Manager.FakePlayerManager.fakePlayers;
+import static top.syshub.lLobby.Manager.PlayerSkinManager.skinCache;
 
 public class TabManager implements Listener {
 
@@ -21,6 +23,8 @@ public class TabManager implements Listener {
 
     public static void initTab() {
         prefixMap.clear();
+        fakePlayers.keySet().forEach(k -> fakePlayers.put(k, "LLobby Reloaded"));
+        skinCache.clear();
         servers = config.getMapList("servers");
     }
 

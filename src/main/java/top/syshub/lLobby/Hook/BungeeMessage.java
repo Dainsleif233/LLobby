@@ -6,7 +6,6 @@ import com.google.common.io.ByteStreams;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.messaging.PluginMessageListener;
-import top.syshub.lLobby.Manager.FakePlayerManager;
 import top.syshub.lLobby.Manager.TabManager;
 
 import javax.annotation.Nonnull;
@@ -14,6 +13,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static top.syshub.lLobby.LLobby.plugin;
+import static top.syshub.lLobby.Manager.FakePlayerManager.fakePlayers;
 
 public class BungeeMessage implements PluginMessageListener {
 
@@ -70,7 +70,7 @@ public class BungeeMessage implements PluginMessageListener {
 
         Collection<? extends Player> players = Bukkit.getOnlinePlayers();
         if (players.isEmpty()) {
-            FakePlayerManager.fakePlayers.clear();
+            fakePlayers.clear();
             return;
         }
         players.iterator().next()

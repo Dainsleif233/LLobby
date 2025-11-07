@@ -22,7 +22,9 @@ public class PlayerSkinManager {
 
     public record PlayerSkin(String texture, String signature) {}
 
-    private static final Map<String, PlayerSkin> skinCache = new ConcurrentHashMap<>();
+    public static final Map<String, PlayerSkin> skinCache = new ConcurrentHashMap<>();
+
+    public static final PlayerSkin NULL_SKIN = new PlayerSkin("", "");
 
     public static CompletableFuture<PlayerSkin> getPlayerSkin(String player) {
         skinCache.keySet().stream()
@@ -44,13 +46,14 @@ public class PlayerSkinManager {
             Gson gson = new Gson();
             HttpRequest request = java.net.http.HttpRequest.newBuilder()
                     .uri(java.net.URI.create(profileApi))
+                    .timeout(java.time.Duration.ofSeconds(3))
                     .build();
 
             try (HttpClient client = HttpClient.newHttpClient()) {
                 HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
                 if (response.statusCode() != 200) {
-                    skinCache.put(player, null);
-                    future.complete(null);
+                    skinCache.put(player, NULL_SKIN);
+                    future.complete(NULL_SKIN);
                     return;
                 }
                 String result = response.body();
@@ -67,13 +70,13 @@ public class PlayerSkinManager {
                         return;
                     }
             } catch (IOException | InterruptedException e) {
-                skinCache.put(player, null);
+                skinCache.put(player, NULL_SKIN);
                 plugin.getLogger().warning("Failed to fetch skin for " + player + ": " + e.getMessage());
-                future.complete(null);
+                future.complete(NULL_SKIN);
                 return;
             }
-            skinCache.put(player, null);
-            future.complete(null);
+            skinCache.put(player, NULL_SKIN);
+            future.complete(NULL_SKIN);
         });
         return future;
     }
