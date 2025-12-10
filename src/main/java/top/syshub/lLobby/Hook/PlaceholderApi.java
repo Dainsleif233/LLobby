@@ -38,19 +38,19 @@ public class PlaceholderApi extends PlaceholderExpansion {
 
     @Override
     public String onRequest(OfflinePlayer player, @NotNull String params) {
-        if (params.startsWith("prefix")) {
-            String name = params.substring(7);
-            return TabManager.prefixMap.getOrDefault(name.isEmpty() ? player.getName() : name, "");
-        }
-        if (params.startsWith("world")) {
+        if (params.equalsIgnoreCase("prefix"))
+            return TabManager.prefixMap.getOrDefault(player.getName(), "");
+        if (params.startsWith("prefix_"))
+            return TabManager.prefixMap.getOrDefault(params.substring(7), "");
+        if (params.equalsIgnoreCase("world")) {
             String world = requireNonNull(requireNonNull(player.getLocation()).getWorld()).getName();
             return nicknames.getOrDefault(world, world);
         }
-        if (params.startsWith("server_version"))
+        if (params.startsWith("server_version_"))
             return serverInfo.getOrDefault(params.substring(15), new ServerInfoManager.ServerInfo("", 0, 0)).version();
-        if (params.startsWith("server_online"))
+        if (params.startsWith("server_online_"))
             return String.valueOf(serverInfo.getOrDefault(params.substring(14), new ServerInfoManager.ServerInfo("", 0, 0)).online());
-        if (params.startsWith("server_max"))
+        if (params.startsWith("server_max_"))
             return String.valueOf(serverInfo.getOrDefault(params.substring(11), new ServerInfoManager.ServerInfo("", 0, 0)).max());
         return null;
     }
