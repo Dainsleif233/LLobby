@@ -6,9 +6,11 @@ import com.google.gson.JsonObject;
 import org.bukkit.Bukkit;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -44,9 +46,9 @@ public class PlayerSkinManager {
             String profileApi = String.format(skinApi, uuidMap.get(player).toString().replace("-", ""));
 
             Gson gson = new Gson();
-            HttpRequest request = java.net.http.HttpRequest.newBuilder()
-                    .uri(java.net.URI.create(profileApi))
-                    .timeout(java.time.Duration.ofSeconds(3))
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(profileApi))
+                    .timeout(Duration.ofSeconds(3))
                     .build();
 
             try (HttpClient client = HttpClient.newHttpClient()) {

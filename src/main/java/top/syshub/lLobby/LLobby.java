@@ -45,6 +45,8 @@ public final class LLobby extends JavaPlugin {
         requireNonNull(getPluginCommand("llobby")).setTabCompleter(new LLobbyCommand());
         requireNonNull(getPluginCommand("llobbyadmin")).setExecutor(new LLobbyAdminCommand());
         requireNonNull(getPluginCommand("llobbyadmin")).setTabCompleter(new LLobbyAdminCommand());
+        requireNonNull(getPluginCommand("lping")).setExecutor(new LPingCommand());
+        requireNonNull(getPluginCommand("lping")).setTabCompleter(new LPingCommand());
 
         getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
         getServer().getMessenger().registerIncomingPluginChannel(this, "BungeeCord", new BungeeMessage());

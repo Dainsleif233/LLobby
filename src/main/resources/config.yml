@@ -17,3 +17,4 @@ servers:
   - server: lobby
     prefix: "§e[大厅] "
 yggdrasil-api: https://littleskin.cn/api/yggdrasil
+ping-api: https://api.jsumc.fun/ping/
